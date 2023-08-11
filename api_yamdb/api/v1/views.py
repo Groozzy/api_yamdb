@@ -9,6 +9,7 @@ from .serializers import (CategoriesSerializer,
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
+    """Вьюсет для категории."""
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -17,6 +18,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
 
 
 class GenresViewSet(viewsets.ModelViewSet):
+    """Вьюсет для жанра."""
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -25,6 +27,7 @@ class GenresViewSet(viewsets.ModelViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
+    """Вьюсет для произведения."""
     queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
     filter_backends = (filters.SearchFilter,)
