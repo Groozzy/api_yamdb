@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
 
 from .permissions import IsAuthorOrReadOnly
@@ -9,7 +10,7 @@ from .serializers import CommentsSerializer, ReviewsSerializer
 class ReviewsViewSet(viewsets.ModelViewSet):
     """Вьюсет для публикации."""
     serializer_class = ReviewsSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
 
     def get_title(self):
         title = get_object_or_404(Titles, pk=self.kwargs.get('title_id'))
@@ -26,7 +27,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев."""
     serializer_class = CommentsSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
 
     def get_review(self):
         review = get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
