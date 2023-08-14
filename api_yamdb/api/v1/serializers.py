@@ -1,8 +1,11 @@
+import datetime as dt
+
 from rest_framework import serializers
 
-from reviews.models import Categories, Genres, Titles, TitlesGenre
+from reviews.models import (Categories, Genres, Titles,
+                            TitlesGenre, Reviews, Comments)
 
-import datetime as dt
+
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -25,19 +28,19 @@ class GenresSerializer(serializers.ModelSerializer):
 
 class TitlesSerializer(serializers.ModelSerializer):
     """Сериализатор для произведения."""
-    # категория может быть из БД категорий 
+    # категория может быть из БД категорий
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(),
         slug_field='slug')
     genre = serializers.SlugRelatedField(
         queryset=Genres.objects.all(),
         slug_field='slug',
-        many=True)    
+        many=True)
 
     class Meta:
         fields = '__all__'
         model = Titles
-    
+
     def to_representation(self, instance):
         self.fields['category'] = CategoriesSerializer()
         self.fields['genre'] = GenresSerializer(many=True)
@@ -50,3 +53,30 @@ class TitlesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Год создания не может быть в будущем')
         return value
+
+
+class ReviewsSerializer(serializers.ModelSerializer):
+    """Сериализатор для отзыва к произведению."""
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        model = Reviews
+
+    def validate_score(self, value):
+        """Валидация оценки."""
+        if not (1 <= value <= 10):
+            raise serializers.ValidationError('Оценка может быть от 1 до 10')
+        return value
+
+
+class CommentsSerializer(serializers.ModelSerializer):
+    """Сериализатор для комментрия к отзыву."""
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username')
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'pub_date')
+        model = Comments

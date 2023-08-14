@@ -21,10 +21,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'django_filters',
+
+    'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
-    'api.apps.ApiConfig'
 ]
 
 MIDDLEWARE = [
@@ -99,18 +101,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-#Настройка прав
-# REST_FRAMEWORK = {
-
-
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.AllowAny',
-#     ],
-# } 
-
 
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'MAX_PAGE_SIZE': 100,
+}
