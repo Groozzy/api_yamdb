@@ -11,6 +11,7 @@ from .serializers import (CategoriesSerializer,
 class CategoriesViewSet(viewsets.ModelViewSet):
     """Вьюсет для категории."""
     queryset = Categories.objects.all()
+    lookup_field = 'slug'
     serializer_class = CategoriesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
@@ -20,6 +21,7 @@ class CategoriesViewSet(viewsets.ModelViewSet):
 class GenresViewSet(viewsets.ModelViewSet):
     """Вьюсет для жанра."""
     queryset = Genres.objects.all()
+    lookup_field = 'slug'
     serializer_class = GenresSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
@@ -32,6 +34,6 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitlesSerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
     permission_classes = (IsAdminOrReadOnly,)
     pagination_class = LimitOffsetPagination

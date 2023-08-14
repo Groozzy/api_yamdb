@@ -8,39 +8,40 @@ import datetime as dt
 class CategoriesSerializer(serializers.ModelSerializer):
     """Сериализатор для категории произведения."""
     class Meta:
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ('id',)
         model = Categories
+        lookup_field = 'slug'
 
 
 class GenresSerializer(serializers.ModelSerializer):
     """Сериализатор для жанра произведения."""
     class Meta:
-        fields = '__all__'
+        # fields = '__all__'
+        exclude = ('id',)
         model = Genres
+        lookup_field = 'slug'
 
 
 class TitlesSerializer(serializers.ModelSerializer):
     """Сериализатор для произведения."""
-    genre = GenresSerializer(many=True, read_only=True)
+    # категория может быть из БД категорий 
+    category = serializers.SlugRelatedField(
+        queryset=Categories.objects.all(),
+        slug_field='slug')
+    genre = serializers.SlugRelatedField(
+        queryset=Genres.objects.all(),
+        slug_field='slug',
+        many=True)    
 
     class Meta:
         fields = '__all__'
         model = Titles
     
-    # def create(self, validated_data):
-    #     """Создание произведения со списком жанров."""
-    #     # Уберём список жанров из словаря validated_data и сохраним его
-    #     genre = validated_data.pop('genre')
-    #     # Сначала добавляем произведением в БД
-    #     title = Titles.objects.create(**validated_data)
-    #     # А потом добавляем его жанры в БД
-    #     for i in genre:
-    #         current_i, status = Genres.objects.get_or_create(
-    #             **i)
-    #         # связываем каждый жанр с произведением
-    #         TitlesGenre.objects.create(
-    #             genre=current_i, title=title)
-    #     return title
+    def to_representation(self, instance):
+        self.fields['category'] = CategoriesSerializer()
+        self.fields['genre'] = GenresSerializer(many=True)
+        return super().to_representation(instance)
 
     def validate_year(self, value):
         """Валидация года создания."""
