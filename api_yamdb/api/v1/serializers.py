@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from reviews.models import (Categories, Genres, Titles,
-                            TitlesGenre, Reviews, Comments)
+                            Reviews, Comments)
 
 User = get_user_model()
 
@@ -12,7 +12,6 @@ User = get_user_model()
 class CategoriesSerializer(serializers.ModelSerializer):
     """Сериализатор для категории произведения."""
     class Meta:
-        # fields = '__all__'
         exclude = ('id',)
         model = Categories
         lookup_field = 'slug'
@@ -21,7 +20,6 @@ class CategoriesSerializer(serializers.ModelSerializer):
 class GenresSerializer(serializers.ModelSerializer):
     """Сериализатор для жанра произведения."""
     class Meta:
-        # fields = '__all__'
         exclude = ('id',)
         model = Genres
         lookup_field = 'slug'
@@ -29,7 +27,6 @@ class GenresSerializer(serializers.ModelSerializer):
 
 class TitlesSerializer(serializers.ModelSerializer):
     """Сериализатор для произведения."""
-    # категория может быть из БД категорий
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(),
         slug_field='slug')
