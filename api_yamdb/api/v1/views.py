@@ -1,14 +1,24 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from reviews.models import Categories, Genres, Titles, Reviews
-from rest_framework import filters, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import filters, viewsets, status
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategoriesSerializer,
                           CommentsSerializer,
                           GenresSerializer,
                           ReviewsSerializer,
-                          TitlesSerializer)
+                          TitlesSerializer,
+                          SignupSerializer)
+
+User = get_user_model()
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
@@ -39,7 +49,7 @@ class TitlesViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPaginationlizer, ReviewsSerializer
+    pagination_class = LimitOffsetPagination
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -74,3 +84,30 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.get_review())
+
+
+class SignupView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request) -> Response:
+        username = request.data.get('username')
+        email = request.data.get('email')
+
+        if User.objects.filter(username=username).exists():
+            if User.objects.get(username=username).email != email:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            self.__send_confirmation_code(username, email)
+            return Response(status=status.HTTP_200_OK)
+
+        serializer = SignupSerializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        self.__send_confirmation_code(username, email)
+        return Response(serializer.data)
+
+    @staticmethod
+    def __send_confirmation_code(username: str, email: str) -> None:
+        user = get_object_or_404(User, username=username)
+        confirmation_code: str = default_token_generator.make_token(user)
+        send_mail('Confirmation code', confirmation_code, settings.ADMIN_EMAIL,
+                  [email])
