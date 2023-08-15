@@ -4,13 +4,14 @@ from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from reviews.models import Categories, Genres, Titles, Reviews
-from rest_framework import filters, viewsets, status
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import filters, viewsets, status, mixins
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
 
 from reviews.models import Categories, Genres, Titles, Reviews
+from .filtres import TitlesFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (CategoriesSerializer,
                           CommentsSerializer,
@@ -22,7 +23,11 @@ from .serializers import (CategoriesSerializer,
 User = get_user_model()
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CategoriesViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet):
     """Вьюсет для категории."""
     queryset = Categories.objects.all()
     lookup_field = 'slug'
@@ -32,7 +37,11 @@ class CategoriesViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet):
     """Вьюсет для жанра."""
     queryset = Genres.objects.all()
     lookup_field = 'slug'
@@ -46,11 +55,10 @@ class TitlesViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения."""
     queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('name',)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_class = TitlesFilter
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):

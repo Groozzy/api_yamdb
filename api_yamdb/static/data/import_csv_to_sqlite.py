@@ -47,7 +47,7 @@ review.to_sql('reviews_review',
 comments = pd.read_csv('api_yamdb/static/data/comments.csv',
                        header=0,
                        index_col=0,
-                       names=('id', 'review_id', 'text', 'author', 'pub_date'))
+                       names=('id', 'review_id', 'text', 'author_id', 'pub_date'))
 comments.to_sql('reviews_comments',
                 con, if_exists='append', index_label='id')
 
