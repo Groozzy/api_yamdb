@@ -152,8 +152,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         user = get_object_or_404(User, username=self.request.user)
-        print(user.username)
-        print(user.email)
         serializer = CustomUserSerializer(user, data=request.data,
                                           partial=True)
         serializer.is_valid(raise_exception=True)
