@@ -1,33 +1,34 @@
 from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from reviews.models import Categories, Genres, Titles, Reviews
-from rest_framework import filters, viewsets, status, mixins
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django_filters.rest_framework import DjangoFilterBackend
 
-from reviews.models import Categories, Genres, Titles, Reviews
-from .filtres import TitlesFilter
+from reviews.models import Categories, Genres, Reviews, Titles
+from .filters import TitlesFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (CategoriesSerializer,
-                          CommentsSerializer,
-                          GenresSerializer,
-                          ReviewsSerializer,
-                          TitlesSerializer,
-                          SignupSerializer)
+from .serializers import (CategoriesSerializer, CommentsSerializer,
+                          GenresSerializer, ReviewsSerializer,
+                          SignupSerializer, TitlesSerializer)
 
 User = get_user_model()
 
 
-class CategoriesViewSet(
+class SpecialViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
-    viewsets.GenericViewSet):
+    viewsets.GenericViewSet
+):
+    pass
+
+
+class CategoriesViewSet(SpecialViewSet):
     """Вьюсет для категории."""
     queryset = Categories.objects.all()
     lookup_field = 'slug'
@@ -37,11 +38,7 @@ class CategoriesViewSet(
     search_fields = ('name',)
 
 
-class GenresViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet):
+class GenresViewSet(SpecialViewSet):
     """Вьюсет для жанра."""
     queryset = Genres.objects.all()
     lookup_field = 'slug'
