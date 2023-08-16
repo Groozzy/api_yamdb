@@ -1,6 +1,11 @@
 from rest_framework import permissions
 
 
+class IsSuperUser(permissions.IsAdminUser):
+    def has_permission(self, request, view):
+        return request.user.is_superuser
+
+
 class IsAdminOrReadOnly(permissions.BasePermission):
     """Права доступа для админа."""
     def has_permission(self, request, view):
