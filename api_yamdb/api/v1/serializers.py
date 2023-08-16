@@ -5,8 +5,8 @@ from django.db.models import Avg
 from rest_framework import serializers
 
 
-from reviews.models import (Categories, Genres, Titles,
-                            Reviews, Comments)
+from reviews.models import (Category, Genre, Title,
+                            Review, Comment)
 
 User = get_user_model()
 
@@ -15,7 +15,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
     """Сериализатор для категории произведения."""
     class Meta:
         exclude = ('id',)
-        model = Categories
+        model = Category
         lookup_field = 'slug'
 
 
@@ -23,24 +23,24 @@ class GenresSerializer(serializers.ModelSerializer):
     """Сериализатор для жанра произведения."""
     class Meta:
         exclude = ('id',)
-        model = Genres
+        model = Genre
         lookup_field = 'slug'
 
 
 class TitlesSerializer(serializers.ModelSerializer):
     """Сериализатор для произведения."""
     category = serializers.SlugRelatedField(
-        queryset=Categories.objects.all(),
+        queryset=Category.objects.all(),
         slug_field='slug')
     genre = serializers.SlugRelatedField(
-        queryset=Genres.objects.all(),
+        queryset=Genre.objects.all(),
         slug_field='slug',
         many=True)
     rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = '__all__'
-        model = Titles
+        model = Title
 
     def to_representation(self, instance):
         self.fields['category'] = CategoriesSerializer()
@@ -54,16 +54,17 @@ class TitlesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Год создания не может быть в будущем')
         return value
-  
-    def get_rating(self, obj):
+
+    @staticmethod
+    def get_rating(obj):
         avg_rating = (
-            Titles.objects.filter(id=obj.id)
+            Title.objects.filter(id=obj.id)
             .annotate(average_rating=Avg("reviews__score"))
             .values("average_rating")
             .first()
         )
         if avg_rating['average_rating'] is None:
-            return 'None'
+            return None
         return round(avg_rating['average_rating'], 1)
 
 
@@ -75,13 +76,13 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
-        model = Reviews
+        model = Review
 
     def validate(self, data):
         title = self.context.get('view').kwargs.get('title_id')
         request = self.context.get('request')
         if (request.method == "POST"
-            and Reviews.objects.filter(
+            and Review.objects.filter(
                 author=request.user, title=title).exists()):
             raise serializers.ValidationError('Validation fault.')
         return data
@@ -100,7 +101,7 @@ class CommentsSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
-        model = Comments
+        model = Comment
 
 
 class SignupSerializer(serializers.ModelSerializer):

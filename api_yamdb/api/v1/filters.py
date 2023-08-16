@@ -1,5 +1,5 @@
 from django_filters import FilterSet, AllValuesFilter
-from reviews.models import Titles
+from reviews.models import Title
 
 
 class TitlesFilter(FilterSet):
@@ -9,6 +9,6 @@ class TitlesFilter(FilterSet):
     genre = AllValuesFilter(field_name='genre__slug')
 
     class Meta:
-        model = Titles
+        model = Title
         fields = ['category', 'genre', 'name', 'year']
 
