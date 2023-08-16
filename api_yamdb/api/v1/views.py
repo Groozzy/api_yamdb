@@ -25,27 +25,23 @@ class SpecialViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    pass
+    """ Специальный вьюсет для Категории и Жанров"""
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class CategoriesViewSet(SpecialViewSet):
     """Вьюсет для категории."""
     queryset = Categories.objects.all()
-    lookup_field = 'slug'
     serializer_class = CategoriesSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class GenresViewSet(SpecialViewSet):
     """Вьюсет для жанра."""
     queryset = Genres.objects.all()
-    lookup_field = 'slug'
     serializer_class = GenresSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
