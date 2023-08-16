@@ -1,17 +1,19 @@
 from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import filters, viewsets, status
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Categories, Genres, Titles, Reviews
+from .filters import TitlesFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsSuperUser
 from .serializers import (CategoriesSerializer,
                           CommentsSerializer,
@@ -25,35 +27,39 @@ from .serializers import (CategoriesSerializer,
 User = get_user_model()
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class SpecialViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    """ Специальный вьюсет для Категории и Жанров"""
+    lookup_field = 'slug'
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
+
+class CategoriesViewSet(SpecialViewSet):
     """Вьюсет для категории."""
     queryset = Categories.objects.all()
-    lookup_field = 'slug'
     serializer_class = CategoriesSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(SpecialViewSet):
     """Вьюсет для жанра."""
     queryset = Genres.objects.all()
-    lookup_field = 'slug'
     serializer_class = GenresSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения."""
     queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('name',)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filterset_class = TitlesFilter
     permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
