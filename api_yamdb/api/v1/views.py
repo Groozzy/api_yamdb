@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Categories, Genres, Titles, Reviews
+from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsSuperUser
 from .serializers import (CategoriesSerializer,
@@ -42,19 +42,19 @@ class SpecialViewSet(
 
 class CategoriesViewSet(SpecialViewSet):
     """Вьюсет для категории."""
-    queryset = Categories.objects.all()
+    queryset = Category.objects.all()
     serializer_class = CategoriesSerializer
 
 
 class GenresViewSet(SpecialViewSet):
     """Вьюсет для жанра."""
-    queryset = Genres.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenresSerializer
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения."""
-    queryset = Titles.objects.all()
+    queryset = Title.objects.all()
     serializer_class = TitlesSerializer
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('name',)
@@ -68,7 +68,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
 
     def get_title(self):
-        title = get_object_or_404(Titles, pk=self.kwargs.get('title_id'))
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title
 
     def get_queryset(self):
@@ -85,7 +85,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
 
     def get_review(self):
-        review = get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         return review
 
     def get_queryset(self):
