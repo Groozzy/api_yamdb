@@ -1,7 +1,9 @@
 import datetime as dt
 
 from django.contrib.auth import get_user_model
+from django.db.models import Avg
 from rest_framework import serializers
+
 
 from reviews.models import (Categories, Genres, Titles,
                             Reviews, Comments)
@@ -34,6 +36,7 @@ class TitlesSerializer(serializers.ModelSerializer):
         queryset=Genres.objects.all(),
         slug_field='slug',
         many=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = '__all__'
@@ -51,6 +54,17 @@ class TitlesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Год создания не может быть в будущем')
         return value
+  
+    def get_rating(self, obj):
+        avg_rating = (
+            Titles.objects.filter(id=obj.id)
+            .annotate(average_rating=Avg("reviews__score"))
+            .values("average_rating")
+            .first()
+        )
+        if avg_rating['average_rating'] is None:
+            return 'None'
+        return round(avg_rating['average_rating'], 1)
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
@@ -62,6 +76,15 @@ class ReviewsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Reviews
+
+    def validate(self, data):
+        title = self.context.get('view').kwargs.get('title_id')
+        request = self.context.get('request')
+        if (request.method == "POST"
+            and Reviews.objects.filter(
+                author=request.user, title=title).exists()):
+            raise serializers.ValidationError('Validation fault.')
+        return data
 
     def validate_score(self, value):
         """Валидация оценки."""

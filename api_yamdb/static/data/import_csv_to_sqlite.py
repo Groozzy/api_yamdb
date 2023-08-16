@@ -38,16 +38,17 @@ review = pd.read_csv('api_yamdb/static/data/review.csv',
                      header=0,
                      index_col=0,
                      names=(
-                         'id', 'titles_id', 'text', 'author', 'score',
+                         'id', 'title_id', 'text', 'author_id', 'score',
                          'pub_date'))
-review.to_sql('reviews_review',
+review.to_sql('reviews_reviews',
               con, if_exists='append', index_label='id')
 
 # для модели comments
 comments = pd.read_csv('api_yamdb/static/data/comments.csv',
                        header=0,
                        index_col=0,
-                       names=('id', 'review_id', 'text', 'author', 'pub_date'))
+                       names=('id', 'review_id', 'text',
+                              'author_id', 'pub_date'))
 comments.to_sql('reviews_comments',
                 con, if_exists='append', index_label='id')
 
