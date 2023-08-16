@@ -133,4 +133,3 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 # Confirmation email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 YAMDB_EMAIL = 'YaMDb@mail.com'
-
