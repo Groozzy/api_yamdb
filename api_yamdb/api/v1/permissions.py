@@ -2,6 +2,7 @@ from rest_framework import permissions
 
 
 class IsSuperUser(permissions.IsAdminUser):
+    """Права доступа для суперпользователя."""
     def has_permission(self, request, view):
         return request.user.is_superuser
 
