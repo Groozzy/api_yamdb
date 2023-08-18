@@ -30,8 +30,8 @@ class GenresSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class TitlesSerializer(serializers.ModelSerializer):
-    """Сериализатор для произведения."""
+class TitlesCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания произведения."""
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug')
@@ -39,16 +39,10 @@ class TitlesSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         slug_field='slug',
         many=True)
-    rating = serializers.SerializerMethodField()
 
     class Meta:
-        fields = '__all__'
+        fields = ('category', 'genre', 'name', 'year', 'id', 'description')
         model = Title
-
-    def to_representation(self, instance):
-        self.fields['category'] = CategoriesSerializer()
-        self.fields['genre'] = GenresSerializer(many=True)
-        return super().to_representation(instance)
 
     def validate_year(self, value):
         """Валидация года создания."""
@@ -57,6 +51,17 @@ class TitlesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Год создания не может быть в будущем')
         return value
+
+
+class TitlesGetSerializer (serializers.ModelSerializer):
+    """Сериализатор для вывода произведения."""
+    category = CategoriesSerializer(read_only=True)
+    genre = GenresSerializer(read_only=True, many=True)
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+        model = Title
 
     @staticmethod
     def get_rating(obj):
