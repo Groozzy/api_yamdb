@@ -1,9 +1,10 @@
 import datetime as dt
+import re
 
 from django.contrib.auth import get_user_model
+from django.core.validators import RegexValidator
 from django.db.models import Avg
 from rest_framework import serializers
-
 
 from reviews.models import (Category, Genre, Title,
                             Review, Comment)
@@ -13,6 +14,7 @@ User = get_user_model()
 
 class CategoriesSerializer(serializers.ModelSerializer):
     """Сериализатор для категории произведения."""
+
     class Meta:
         exclude = ('id',)
         model = Category
@@ -21,6 +23,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
 
 class GenresSerializer(serializers.ModelSerializer):
     """Сериализатор для жанра произведения."""
+
     class Meta:
         exclude = ('id',)
         model = Genre
@@ -82,8 +85,8 @@ class ReviewsSerializer(serializers.ModelSerializer):
         title = self.context.get('view').kwargs.get('title_id')
         request = self.context.get('request')
         if (request.method == "POST"
-            and Review.objects.filter(
-                author=request.user, title=title).exists()):
+                and Review.objects.filter(
+                    author=request.user, title=title).exists()):
             raise serializers.ValidationError('Validation fault.')
         return data
 
@@ -104,18 +107,30 @@ class CommentsSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class SignupSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=True)
-    username = serializers.CharField(required=True)
+class SignupSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True, max_length=254)
+    username = serializers.CharField(required=True, max_length=128)
 
-    class Meta:
-        model = User
-        fields = ('username', 'email')
+    @staticmethod
+    def validate_username(username):
+        if username.lower() == 'me':
+            raise serializers.ValidationError('Нельзя использовать имя "me"')
+        if not re.match(pattern=r'^[\w.@+-]+$', string=username):
+            raise serializers.ValidationError(f'Некорректное имя {username}')
+        return username
 
     @staticmethod
     def validate(data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError('Нельзя использовать имя "me"')
+        if not User.objects.filter(username=data.get('username'),
+                                   email=data.get('email')):
+            if User.objects.filter(username=data.get('username')):
+                raise serializers.ValidationError(
+                    'Пользователь с таким username уже существует'
+                )
+            if User.objects.filter(email=data.get('email')):
+                raise serializers.ValidationError(
+                    'Пользователь с таким email уже существует'
+                )
         return data
 
 
