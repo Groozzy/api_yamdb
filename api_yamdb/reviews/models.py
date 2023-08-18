@@ -52,16 +52,22 @@ class TitleGenre(models.Model):
 class Review(models.Model):
     """Модель отзыва на произведение."""
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name='reviews'
+        Title, on_delete=models.CASCADE, related_name='reviews',
+        verbose_name='Произведение'
     )
-    text = models.TextField()
+    text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        Users, on_delete=models.CASCADE, related_name='reviews'
+        Users, on_delete=models.CASCADE, related_name='reviews',
+        verbose_name='Автор'
     )
     score = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        verbose_name='Оценка'
     )
-    pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True, db_index=True,
+        verbose_name='Дата публикации'
+    )
 
     class Meta:
         constraints = [
@@ -70,6 +76,8 @@ class Review(models.Model):
                 name='unique_review-title-author'
             )
         ]
+        verbose_name = 'отзыв'
+        verbose_name_plural = 'Отзывы'
 
     def __str__(self):
         return self.text
@@ -78,13 +86,22 @@ class Review(models.Model):
 class Comment(models.Model):
     """Модель комментария на отзыв."""
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments'
+        Review, on_delete=models.CASCADE, related_name='comments',
+        verbose_name='Отзыв'
     )
-    text = models.TextField()
+    text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
-        Users, on_delete=models.CASCADE, related_name='comments'
+        Users, on_delete=models.CASCADE, related_name='comments',
+        verbose_name='Автор'
     )
-    pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True, db_index=True,
+        verbose_name='Дата публикации'
+    )
+
+    class Meta:
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return self.text
