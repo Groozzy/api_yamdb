@@ -58,7 +58,7 @@ class Review(models.Model):
     author = models.ForeignKey(
         Users, on_delete=models.CASCADE, related_name='reviews'
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
     pub_date = models.DateTimeField(auto_now_add=True, db_index=True)

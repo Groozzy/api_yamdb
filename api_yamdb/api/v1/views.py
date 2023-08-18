@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
 from rest_framework.decorators import action
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
@@ -14,7 +15,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsSuperUser
+from .permissions import (IsAdminOrReadOnly,
+                          IsAuthorOrStaffOrAdminOrReadOnly,
+                          IsSuperUser)
 from .serializers import (CategoriesSerializer,
                           CommentsSerializer,
                           ConfirmationSerializer,
@@ -54,7 +57,10 @@ class GenresViewSet(SpecialViewSet):
 
 class TitlesViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения."""
-    queryset = Title.objects.all()
+    queryset = (
+        Title.objects.all()
+        .annotate(rating=Avg("reviews__score"))
+    )
     serializer_class = TitlesSerializer
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('name',)
@@ -65,7 +71,8 @@ class TitlesViewSet(viewsets.ModelViewSet):
 class ReviewsViewSet(viewsets.ModelViewSet):
     """Вьюсет для публикации."""
     serializer_class = ReviewsSerializer
-    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
+    permission_classes = (IsAuthorOrStaffOrAdminOrReadOnly,
+                          IsAuthenticatedOrReadOnly,)
 
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -82,7 +89,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев."""
     serializer_class = CommentsSerializer
-    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
+    permission_classes = (IsAuthorOrStaffOrAdminOrReadOnly,
+                          IsAuthenticatedOrReadOnly)
 
     def get_review(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))

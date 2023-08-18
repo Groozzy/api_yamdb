@@ -1,7 +1,6 @@
 import datetime as dt
 
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
 from rest_framework import serializers
 
 
@@ -55,17 +54,11 @@ class TitlesSerializer(serializers.ModelSerializer):
                 'Год создания не может быть в будущем')
         return value
 
-    @staticmethod
-    def get_rating(obj):
-        avg_rating = (
-            Title.objects.filter(id=obj.id)
-            .annotate(average_rating=Avg("reviews__score"))
-            .values("average_rating")
-            .first()
-        )
-        if avg_rating['average_rating'] is None:
+    def get_rating(self, obj):
+        request_method = self.context.get('request').method
+        if request_method == "POST":
             return None
-        return round(avg_rating['average_rating'], 1)
+        return round(obj.rating, 1) if obj.rating is not None else None
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
@@ -84,7 +77,9 @@ class ReviewsSerializer(serializers.ModelSerializer):
         if (request.method == "POST"
             and Review.objects.filter(
                 author=request.user, title=title).exists()):
-            raise serializers.ValidationError('Validation fault.')
+            raise serializers.ValidationError(
+                'Вы уже оставили отзыв на данное произведение.'
+            )
         return data
 
     def validate_score(self, value):
