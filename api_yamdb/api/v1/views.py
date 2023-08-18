@@ -100,20 +100,11 @@ class SignupView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request) -> Response:
-        username = request.data.get('username')
-        email = request.data.get('email')
-
-        if User.objects.filter(username=username).exists():
-            if User.objects.get(username=username).email != email:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            self.__send_confirmation_code(username, email)
-            return Response(status=status.HTTP_200_OK)
-
         serializer = SignupSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        self.__send_confirmation_code(username, email)
-        return Response(serializer.data)
+        user, _ = User.objects.get_or_create(**serializer.validated_data)
+        self.__send_confirmation_code(user.username, user.email)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
     def __send_confirmation_code(username: str, email: str) -> None:
