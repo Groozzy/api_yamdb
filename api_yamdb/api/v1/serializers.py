@@ -121,16 +121,13 @@ class SignupSerializer(serializers.Serializer):
 
     @staticmethod
     def validate(data):
-        if not User.objects.filter(username=data.get('username'),
-                                   email=data.get('email')):
-            if User.objects.filter(username=data.get('username')):
+        username, email = data.get('username'), data.get('email')
+        if not User.objects.filter(username=username, email=email):
+            if User.objects.filter(username=username):
+                raise serializers.ValidationError(f'Логин {username} занят')
+            if User.objects.filter(email=email):
                 raise serializers.ValidationError(
-                    'Пользователь с таким username уже существует'
-                )
-            if User.objects.filter(email=data.get('email')):
-                raise serializers.ValidationError(
-                    'Пользователь с таким email уже существует'
-                )
+                    f'Email {email} уже зарегистрирован')
         return data
 
 
