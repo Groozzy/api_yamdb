@@ -1,5 +1,6 @@
-import pandas as pd
 import sqlite3
+
+import pandas as pd
 
 con = sqlite3.connect('api_yamdb/db.sqlite3')
 cur = con.cursor()

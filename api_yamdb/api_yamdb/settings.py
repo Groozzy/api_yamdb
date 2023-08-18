@@ -1,7 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -133,4 +132,3 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 # Confirmation email
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 YAMDB_EMAIL = 'YaMDb@mail.com'
-
