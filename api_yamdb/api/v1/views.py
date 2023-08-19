@@ -21,32 +21,34 @@ from .serializers import (CategoriesSerializer,
                           CustomUserSerializer,
                           GenresSerializer,
                           ReviewsSerializer,
-                          TitlesSerializer,
+                          TitlesGetSerializer,
+                          TitlesCreateSerializer,
                           SignupSerializer)
 
 User = get_user_model()
 
 
-class SpecialViewSet(
+class CreateListDestroyViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
-    """ Специальный вьюсет для Категории и Жанров"""
+    """Вьюсет, реализующий общий функционал создания, вывод списка, удаления,
+    поиска, фильтрации для Категории и Жанров"""
     lookup_field = 'slug'
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
 
-class CategoriesViewSet(SpecialViewSet):
+class CategoriesViewSet(CreateListDestroyViewSet):
     """Вьюсет для категории."""
     queryset = Category.objects.all()
     serializer_class = CategoriesSerializer
 
 
-class GenresViewSet(SpecialViewSet):
+class GenresViewSet(CreateListDestroyViewSet):
     """Вьюсет для жанра."""
     queryset = Genre.objects.all()
     serializer_class = GenresSerializer
@@ -55,11 +57,15 @@ class GenresViewSet(SpecialViewSet):
 class TitlesViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения."""
     queryset = Title.objects.all()
-    serializer_class = TitlesSerializer
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('name',)
     filterset_class = TitlesFilter
     permission_classes = (IsAdminOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitlesGetSerializer
+        return TitlesCreateSerializer
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
@@ -100,20 +106,11 @@ class SignupView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request) -> Response:
-        username = request.data.get('username')
-        email = request.data.get('email')
-
-        if User.objects.filter(username=username).exists():
-            if User.objects.get(username=username).email != email:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            self.__send_confirmation_code(username, email)
-            return Response(status=status.HTTP_200_OK)
-
         serializer = SignupSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        self.__send_confirmation_code(username, email)
-        return Response(serializer.data)
+        user, _ = User.objects.get_or_create(**serializer.validated_data)
+        self.__send_confirmation_code(user.username, user.email)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @staticmethod
     def __send_confirmation_code(username: str, email: str) -> None:
