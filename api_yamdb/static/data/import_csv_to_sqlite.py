@@ -1,5 +1,6 @@
-import pandas as pd
 import sqlite3
+
+import pandas as pd
 
 con = sqlite3.connect('api_yamdb/db.sqlite3')
 cur = con.cursor()
@@ -30,7 +31,7 @@ genre_title = pd.read_csv('api_yamdb/static/data/genre_title.csv',
                           header=0,
                           index_col=0,
                           names=('id', 'titles_id', 'genres_id'))
-genre_title.to_sql('reviews_titlesgenre',
+genre_title.to_sql('reviews_titlegenre',
                    con, if_exists='append', index_label='id')
 
 # для модели review
@@ -43,7 +44,7 @@ review = pd.read_csv('api_yamdb/static/data/review.csv',
 review.to_sql('reviews_review',
               con, if_exists='append', index_label='id')
 
-# для модели comments
+# для модели comment
 comments = pd.read_csv('api_yamdb/static/data/comments.csv',
                        header=0,
                        index_col=0,
@@ -52,7 +53,7 @@ comments = pd.read_csv('api_yamdb/static/data/comments.csv',
 comments.to_sql('reviews_comment',
                 con, if_exists='append', index_label='id')
 
-# для модели users - определить название модели
+# для модели user - определить название модели
 users = pd.read_csv('api_yamdb/static/data/users.csv',
                     header=0,
                     index_col=0,

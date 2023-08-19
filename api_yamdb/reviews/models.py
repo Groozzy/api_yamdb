@@ -87,7 +87,10 @@ class Review(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(10)],
         verbose_name="Оценка"
     )
-    pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True, db_index=True,
+        verbose_name='Дата публикации'
+    )
 
     class Meta:
         constraints = [
@@ -98,7 +101,7 @@ class Review(models.Model):
         ]
         verbose_name = 'Отзыв на произведение'
         verbose_name_plural = 'Отзывы на произведения'
-        ordering = ('author',)
+        ordering = ('pub_date',)
 
     def __str__(self):
         return self.text
@@ -116,12 +119,15 @@ class Comment(models.Model):
         Users, on_delete=models.CASCADE, related_name='comments',
         verbose_name="Автор"
     )
-    pub_date = models.DateTimeField(auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True, db_index=True,
+        verbose_name='Дата публикации'
+    )
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ('author',)
+        ordering = ('pub_date',)
 
     def __str__(self):
         return self.text

@@ -1,29 +1,26 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework.decorators import action
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
+from reviews.models import Category, Genre, Review, Title
 
-from reviews.models import Category, Genre, Title, Review
 from .filters import TitlesFilter
-from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsSuperUser
-from .serializers import (CategoriesSerializer,
-                          CommentsSerializer,
-                          ConfirmationSerializer,
-                          CustomUserSerializer,
-                          GenresSerializer,
-                          ReviewsSerializer,
-                          TitlesGetSerializer,
-                          TitlesCreateSerializer,
-                          SignupSerializer)
+from .permissions import IsAdminOrReadOnly, IsGodsOrReadOnly, IsSuperUser
+from .serializers import (CategoriesSerializer, CommentsSerializer,
+                          ConfirmationSerializer, CustomUserSerializer,
+                          GenresSerializer, ReviewsSerializer,
+                          SignupSerializer, TitlesCreateSerializer,
+                          TitlesGetSerializer)
 
 User = get_user_model()
 
@@ -56,7 +53,7 @@ class GenresViewSet(CreateListDestroyViewSet):
 
 class TitlesViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведения."""
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg("reviews__score"))
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('name',)
     filterset_class = TitlesFilter
@@ -71,7 +68,8 @@ class TitlesViewSet(viewsets.ModelViewSet):
 class ReviewsViewSet(viewsets.ModelViewSet):
     """Вьюсет для публикации."""
     serializer_class = ReviewsSerializer
-    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
+    permission_classes = (IsGodsOrReadOnly,
+                          IsAuthenticatedOrReadOnly,)
 
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -88,7 +86,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев."""
     serializer_class = CommentsSerializer
-    permission_classes = (IsAuthorOrReadOnly, IsAuthenticatedOrReadOnly)
+    permission_classes = (IsGodsOrReadOnly,
+                          IsAuthenticatedOrReadOnly)
 
     def get_review(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
