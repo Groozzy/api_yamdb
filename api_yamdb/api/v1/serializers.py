@@ -4,9 +4,7 @@ import re
 from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from rest_framework import serializers
-
-from reviews.models import (Category, Genre, Title,
-                            Review, Comment)
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -62,17 +60,11 @@ class TitlesGetSerializer (serializers.ModelSerializer):
         fields = '__all__'
         model = Title
 
-    @staticmethod
-    def get_rating(obj):
-        avg_rating = (
-            Title.objects.filter(id=obj.id)
-            .annotate(average_rating=Avg("reviews__score"))
-            .values("average_rating")
-            .first()
-        )
-        if avg_rating['average_rating'] is None:
+    def get_rating(self, obj):
+        request_method = self.context.get('request').method
+        if request_method == "POST":
             return None
-        return round(avg_rating['average_rating'], 1)
+        return round(obj.rating, 1) if obj.rating is not None else None
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
@@ -91,7 +83,9 @@ class ReviewsSerializer(serializers.ModelSerializer):
         if (request.method == "POST"
                 and Review.objects.filter(
                     author=request.user, title=title).exists()):
-            raise serializers.ValidationError('Validation fault.')
+            raise serializers.ValidationError(
+                'Вы уже оставили отзыв на данное произведение.'
+            )
         return data
 
     def validate_score(self, value):
