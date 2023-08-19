@@ -2,7 +2,6 @@ import datetime as dt
 import re
 
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
 from django.db.models import Avg
 from rest_framework import serializers
 
