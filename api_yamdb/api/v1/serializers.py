@@ -2,7 +2,6 @@ import datetime as dt
 import re
 
 from django.contrib.auth import get_user_model
-from django.db.models import Avg
 from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -109,16 +108,14 @@ class SignupSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, max_length=254)
     username = serializers.CharField(required=True, max_length=128)
 
-    @staticmethod
-    def validate_username(username):
+    def validate_username(self, username):
         if username.lower() == 'me':
             raise serializers.ValidationError('Нельзя использовать имя "me"')
         if not re.match(pattern=r'^[\w.@+-]+$', string=username):
             raise serializers.ValidationError(f'Некорректное имя {username}')
         return username
 
-    @staticmethod
-    def validate(data):
+    def validate(self, data, *args, **kwargs):
         username, email = data.get('username'), data.get('email')
         if not User.objects.filter(username=username, email=email):
             if User.objects.filter(username=username):
