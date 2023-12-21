@@ -1,16 +1,16 @@
-# api_yamdb
-api_yamdb
+# review_hub
+review_hub
 
 ### Как запустить проект:
 
 Клонировать репозиторий и перейти в него в командной строке:
 
 ```
-git clone git@github.com:Groozzy/api_yamdb.git
+git clone git@github.com:Groozzy/review_hub.git
 ```
 
 ```
-cd api_yamdb
+cd review_hub
 ```
 
 Cоздать и активировать виртуальное окружение:
